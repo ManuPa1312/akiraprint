@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+model Product {
+  id           Int            @id @default(autoincrement())
+  name         String
+  price        Float
+  category     String
+  image        String         @default("")
+  backImage    String         @default("")
+  description  String         @default("")
+  customizable Boolean        @default(false)
+  backPrice    Float          @default(0)
+  createdAt    DateTime       @default(now())
+  colors       ProductColor[]
+  priceTiers   Pricetier[]
+  sizes        ProductSize[]
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  total     Float
+  status    String      @default("pending")
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+}
+model OrderItem {
+  id                 Int     @id @default(autoincrement())
+  orderId            Int
+  productId          Int
+  quantity           Int
+  price              Float
+  customizationFront String  @default("")
+  customizationBack  String  @default("")
+  originalFront      String  @default("")
+  originalBack       String  @default("")
+  customizationNotes String  @default("")
+  order              Order   @relation(fields: [orderId], references: [id])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String   @default("")
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+}
+
+model ProductColor {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  name      String
+  hex       String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Pricetier {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  minQty    Int
+  maxQty    Int?
+  price     Float
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductSize {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  name      String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model PendingOrder {
+  id        Int      @id @default(autoincrement())
+  data      String
+  createdAt DateTime @default(now())
+}
