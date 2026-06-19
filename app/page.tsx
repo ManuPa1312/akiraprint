@@ -54,14 +54,13 @@ export default async function Home() {
       <section className="py-20 px-6 bg-[#f9f9f9]">
         <h2 className="text-3xl font-black text-center mb-14">I più amati</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {products.map((product) => (
-            <Link key={product.id} href={`/shop/${product.id}`} className="card bg-white">
-             <div className="h-56 overflow-hidden">
-  <img
-    src={product.image || `https://picsum.photos/seed/${product.id}/400/300`}
-    alt={product.name}
-    className="w-full h-full object-cover"
-  />
+ {products.map((product: { id: number; name: string; price: number; category: string; image: string }) => (
+  <Link key={product.id} href={`/shop/${product.id}`} className="card bg-white">
+    <div className="h-56 overflow-hidden">
+      <img
+        src={product.image || `https://picsum.photos/seed/${product.id}/400/300`}
+        alt={product.name}
+        className="w-full h-full object-cover"></img>
 </div>
               <div className="p-5">
                 <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--accent)" }}>{product.category}</p>
