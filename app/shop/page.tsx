@@ -46,14 +46,15 @@ export default async function Shop({
 
       {/* Prodotti */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto px-6 pb-20">
-        {products.map((product) => (
-          <Link key={product.id} href={`/shop/${product.id}`} className="card bg-white">
-            <div className="h-56 overflow-hidden">
-  <img
-    src={product.image || `https://picsum.photos/seed/${product.id}/400/300`}
-    alt={product.name}
-    className="w-full h-full object-cover"
-  />
+        {products.map((product: { id: number; name: string; price: number; category: string; image: string }) => (
+  <Link key={product.id} href={`/shop/${product.id}`} className="card bg-white">
+    <div className="h-56 overflow-hidden">
+      <img
+        src={product.image || `https://picsum.photos/seed/${product.id}/400/300`}
+        alt={product.name}
+        className="w-full h-full object-cover"
+      />
+    
 </div>
             <div className="p-5">
               <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: "var(--accent)" }}>
