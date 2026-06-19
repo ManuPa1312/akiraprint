@@ -26,30 +26,36 @@ export async function PUT(
   await prisma.pricetier.deleteMany({ where: { productId: parseInt(id) } });
   await prisma.productSize.deleteMany({ where: { productId: parseInt(id) } });
 
-const product = await prisma.product.update({
-  where: { id: parseInt(id) },
-  data: {
-    name: body.name,
-    price: body.price,
-    category: body.category,
-    description: body.description,
-    image: body.image,
-    customizable: body.customizable || false,
-    colors: { create: body.colors || [] },
-    priceTiers: { create: body.priceTiers || [] },
-    sizes: { create: body.sizes?.map((s: string) => ({ name: s })) || [] },
-  },
-  include: { colors: true, priceTiers: true, sizes: true },
-});
+  const product = await prisma.product.update({
+    where: { id: parseInt(id) },
+    data: {
+      name: body.name,
+      price: body.price,
+      category: body.category,
+      description: body.description,
+      image: body.image,
+      backImage: body.backImage || "",
+      customizable: body.customizable || false,
+      backPrice: body.backPrice || 0,
+      colors: {
+        create: body.colors?.map((c: { name: string; hex: string }) => ({
+          name: c.name,
+          hex: c.hex,
+        })) || [],
+      },
+      priceTiers: {
+        create: body.priceTiers?.map((t: { minQty: number; maxQty: number | null; price: number }) => ({
+          minQty: t.minQty,
+          maxQty: t.maxQty,
+          price: t.price,
+        })) || [],
+      },
+      sizes: {
+        create: body.sizes?.map((s: string) => ({ name: s })) || [],
+      },
+    },
+    include: { colors: true, priceTiers: true, sizes: true },
+  });
 
   return NextResponse.json(product);
-}
-
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  await prisma.product.delete({ where: { id: parseInt(id) } });
-  return NextResponse.json({ success: true });
 }
