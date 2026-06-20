@@ -10,16 +10,16 @@ export default async function Home() {
   return (
     <main>
       {/* Hero */}
-      <section className="relative text-center py-32 px-6 bg-[#f9f9f9] overflow-hidden">
+      <section className="relative text-center py-20 md:py-32 px-4 sm:px-6 bg-[#f9f9f9] overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1" style={{ background: "var(--accent)" }}></div>
-        <p className="text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--accent)" }}>
+        <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--accent)" }}>
           Maglie · Cappellini · Gadget
         </p>
-        <h1 className="text-6xl font-black tracking-tight mb-6 leading-tight">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6 leading-tight">
           Il tuo stile,<br />
           <span style={{ color: "var(--accent)" }}>personalizzato</span>
         </h1>
-        <p className="text-lg text-gray-500 mb-10 max-w-xl mx-auto">
+        <p className="text-base sm:text-lg text-gray-500 mb-10 max-w-xl mx-auto px-2">
           Grafiche originali e prodotti su misura per privati e aziende. Dal singolo pezzo alle grandi quantità.
         </p>
         <div className="flex justify-center gap-4 flex-wrap mb-10">
@@ -32,31 +32,31 @@ export default async function Home() {
         </div>
 
         {/* Badge fiducia */}
-        <div className="flex justify-center gap-6 flex-wrap text-sm text-gray-500">
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="flex justify-center gap-4 sm:gap-6 flex-wrap text-xs sm:text-sm text-gray-500 px-2">
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             Pagamento sicuro
           </span>
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Spedizione tracciata
           </span>
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Spedizioni in tutta Italia
+            Spedizioni in Italia
           </span>
         </div>
       </section>
 
       {/* Come funziona */}
-      <section className="py-20 px-6 bg-white">
-        <h2 className="text-3xl font-black text-center mb-14">Come funziona</h2>
+      <section className="py-16 md:py-20 px-4 sm:px-6 bg-white">
+        <h2 className="text-2xl sm:text-3xl font-black text-center mb-10 md:mb-14">Come funziona</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto text-center">
           {[
             {
@@ -92,7 +92,7 @@ export default async function Home() {
           ].map((item) => (
             <div key={item.step} className="flex flex-col items-center">
               <div className="mb-3" style={{ color: "var(--accent)" }}>{item.icon}</div>
-              <span className="text-5xl font-black mb-4" style={{ color: "var(--accent)" }}>{item.step}</span>
+              <span className="text-4xl sm:text-5xl font-black mb-4" style={{ color: "var(--accent)" }}>{item.step}</span>
               <h3 className="text-lg font-bold mb-2">{item.title}</h3>
               <p className="text-gray-500 text-sm">{item.desc}</p>
             </div>
@@ -102,9 +102,9 @@ export default async function Home() {
 
       {/* Prodotti in evidenza */}
       {products.length > 0 && (
-        <section className="py-20 px-6 bg-[#f9f9f9]">
-          <h2 className="text-3xl font-black text-center mb-14">I più amati</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <section className="py-16 md:py-20 px-4 sm:px-6 bg-[#f9f9f9]">
+          <h2 className="text-2xl sm:text-3xl font-black text-center mb-10 md:mb-14">I più amati</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
             {products.map((product: { id: number; name: string; price: number; category: string; image: string }) => (
               <Link key={product.id} href={`/shop/${product.id}`} className="card bg-white">
                 <div className="h-56 overflow-hidden">
@@ -129,20 +129,20 @@ export default async function Home() {
       )}
 
       {/* Banner personalizzazione */}
-      <section className="py-20 px-6 text-white text-center" style={{ background: "var(--accent)" }}>
-        <h2 className="text-4xl font-black mb-4">Vuoi un prodotto personalizzato?</h2>
-        <p className="text-lg mb-8 opacity-90">Per aziende, eventi, team sportivi o regali unici. Preventivo gratuito.</p>
+      <section className="py-16 md:py-20 px-4 sm:px-6 text-white text-center" style={{ background: "var(--accent)" }}>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4">Vuoi un prodotto personalizzato?</h2>
+        <p className="text-base sm:text-lg mb-8 opacity-90 px-2">Per aziende, eventi, team sportivi o regali unici. Preventivo gratuito.</p>
         <Link href="/preventivo" className="bg-white font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition inline-block" style={{ color: "var(--accent)" }}>
           Richiedi un preventivo
         </Link>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-10 px-6 text-center text-gray-400 text-sm bg-white">
+      <footer className="border-t py-10 px-4 sm:px-6 text-center text-gray-400 text-sm bg-white">
         <p className="text-xl font-black mb-3 text-black">
           AKIRA<span style={{ color: "var(--accent)" }}>PRINT</span>
         </p>
-        <div className="flex justify-center gap-6 mb-4">
+        <div className="flex justify-center gap-6 mb-4 flex-wrap">
           <a href="#" className="hover:text-[#F4721E] transition">Instagram</a>
           <a href="#" className="hover:text-[#F4721E] transition">TikTok</a>
           <a href="#" className="hover:text-[#F4721E] transition">Contatti</a>
