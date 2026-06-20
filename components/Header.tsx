@@ -17,7 +17,7 @@ export default function Header() {
       <nav className="flex gap-8 items-center text-sm font-medium">
         <Link href="/shop" className="hover:text-[#FFD000] transition">Shop</Link>
        <Link href="/preventivo" className="hover:text-[#FFD000] transition">Preventivo</Link>
-        <Link href="#" className="hover:text-[#FFD000] transition">Chi siamo</Link>
+       <Link href="/chi-siamo" className="hover:text-[#FFD000] transition">Chi siamo</Link>
 
         {/* Carrello */}
         <Link href="/cart" className="relative">
