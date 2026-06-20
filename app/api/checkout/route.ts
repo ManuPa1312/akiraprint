@@ -28,15 +28,45 @@ export async function POST(req: Request) {
   }));
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-    line_items: lineItems,
-    mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_URL}/checkout/success`,
-    cancel_url: `${process.env.NEXT_PUBLIC_URL}/cart`,
-    metadata: {
-      pendingOrderId: pending.id.toString(),
+  payment_method_types: ["card"],
+  line_items: lineItems,
+  mode: "payment",
+  success_url: `${process.env.NEXT_PUBLIC_URL}/checkout/success`,
+  cancel_url: `${process.env.NEXT_PUBLIC_URL}/cart`,
+  shipping_address_collection: {
+    allowed_countries: ["IT", "SM", "VA"],
+  },
+  phone_number_collection: {
+    enabled: true,
+  },
+  shipping_options: [
+    {
+      shipping_rate_data: {
+        type: "fixed_amount",
+        fixed_amount: { amount: 500, currency: "eur" },
+        display_name: "Spedizione standard (3-5 giorni)",
+        delivery_estimate: {
+          minimum: { unit: "business_day", value: 3 },
+          maximum: { unit: "business_day", value: 5 },
+        },
+      },
     },
-  });
+    {
+      shipping_rate_data: {
+        type: "fixed_amount",
+        fixed_amount: { amount: 1000, currency: "eur" },
+        display_name: "Spedizione express (1-2 giorni)",
+        delivery_estimate: {
+          minimum: { unit: "business_day", value: 1 },
+          maximum: { unit: "business_day", value: 2 },
+        },
+      },
+    },
+  ],
+  metadata: {
+    pendingOrderId: pending.id.toString(),
+  },
+});
 
   return NextResponse.json({ url: session.url });
 }

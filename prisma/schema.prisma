@@ -24,12 +24,22 @@ model Product {
 }
 
 model Order {
-  id        Int         @id @default(autoincrement())
-  total     Float
-  status    String      @default("pending")
-  createdAt DateTime    @default(now())
-  items     OrderItem[]
+  id              Int         @id @default(autoincrement())
+  total           Float
+  status          String      @default("pending")
+  createdAt       DateTime    @default(now())
+  customerName    String      @default("")
+  customerEmail   String      @default("")
+  customerPhone   String      @default("")
+  shippingAddress String      @default("")
+  shippingCity    String      @default("")
+  shippingZip     String      @default("")
+  shippingCountry String      @default("Italia")
+  shippingCost    Float       @default(0)
+  trackingNumber  String      @default("")
+  items           OrderItem[]
 }
+
 model OrderItem {
   id                 Int     @id @default(autoincrement())
   orderId            Int

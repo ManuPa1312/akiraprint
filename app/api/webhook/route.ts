@@ -16,54 +16,70 @@ export async function POST(req: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    try {
-      const pendingOrderId = parseInt(session.metadata?.pendingOrderId || "0");
-      const pending = await prisma.pendingOrder.findUnique({
-        where: { id: pendingOrderId },
-      });
+  const sessionData = event.data.object as Stripe.Checkout.Session;
+  try {
+    // Recupera la sessione completa con i dettagli espansi
+    const session = await stripe.checkout.sessions.retrieve(sessionData.id, {
+      expand: ["customer_details"],
+    });
 
-      if (!pending) throw new Error("Pending order non trovato");
+    const pendingOrderId = parseInt(session.metadata?.pendingOrderId || "0");
+    const pending = await prisma.pendingOrder.findUnique({
+      where: { id: pendingOrderId },
+    });
 
-      const items = JSON.parse(pending.data);
+    if (!pending) throw new Error("Pending order non trovato");
 
-      await prisma.order.create({
-        data: {
-          total: (session.amount_total || 0) / 100,
-          status: "pagato",
-          items: {
-            create: items.map((item: {
-              id: number;
-              quantity: number;
-              price: number;
-              customizationFront?: string;
-              customizationBack?: string;
-              originalFront?: string;
-              originalBack?: string;
-              customizationNotes?: string;
-            }) => ({
-              productId: item.id,
-              quantity: item.quantity,
-              price: item.price,
-              customizationFront: item.customizationFront || "",
-              customizationBack: item.customizationBack || "",
-              originalFront: item.originalFront || "",
-              originalBack: item.originalBack || "",
-              customizationNotes: item.customizationNotes || "",
-            })),
-          },
+    const items = JSON.parse(pending.data);
+
+    const customerDetails = session.customer_details;
+    const shippingCost = session.shipping_cost?.amount_total || 0;
+
+    await prisma.order.create({
+      data: {
+        total: (session.amount_total || 0) / 100,
+        status: "pagato",
+        customerName: customerDetails?.name || "",
+        customerEmail: customerDetails?.email || "",
+        customerPhone: customerDetails?.phone || "",
+        shippingAddress: customerDetails?.address
+          ? `${customerDetails.address.line1 || ""} ${customerDetails.address.line2 || ""}`.trim()
+          : "",
+        shippingCity: customerDetails?.address?.city || "",
+        shippingZip: customerDetails?.address?.postal_code || "",
+        shippingCountry: customerDetails?.address?.country || "IT",
+        shippingCost: shippingCost / 100,
+        items: {
+          create: items.map((item: {
+            id: number;
+            quantity: number;
+            price: number;
+            customizationFront?: string;
+            customizationBack?: string;
+            originalFront?: string;
+            originalBack?: string;
+            customizationNotes?: string;
+          }) => ({
+            productId: item.id,
+            quantity: item.quantity,
+            price: item.price,
+            customizationFront: item.customizationFront || "",
+            customizationBack: item.customizationBack || "",
+            originalFront: item.originalFront || "",
+            originalBack: item.originalBack || "",
+            customizationNotes: item.customizationNotes || "",
+          })),
         },
-      });
+      },
+    });
 
-      // Elimina il pending order
-      await prisma.pendingOrder.delete({ where: { id: pendingOrderId } });
-
-      console.log("Ordine salvato!");
-    } catch (err) {
-      console.error("Errore:", err);
-      return NextResponse.json({ error: "Errore" }, { status: 500 });
-    }
+    await prisma.pendingOrder.delete({ where: { id: pendingOrderId } });
+    console.log("Ordine salvato con indirizzo spedizione!");
+  } catch (err) {
+    console.error("Errore:", err);
+    return NextResponse.json({ error: "Errore" }, { status: 500 });
   }
+}
 
   return NextResponse.json({ received: true });
 }
