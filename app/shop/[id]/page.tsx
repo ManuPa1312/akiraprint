@@ -7,6 +7,7 @@ import ProductCustomizer from "@/components/ProductCustomizer";
 type Color = { id: number; name: string; hex: string };
 type PriceTier = { id: number; minQty: number; maxQty: number | null; price: number };
 type Size = { id: number; name: string };
+type StickerDiscount = { id: number; minQty: number; discount: number };
 
 type Product = {
   id: number;
@@ -18,10 +19,26 @@ type Product = {
   backImage: string;
   backPrice: number;
   customizable: boolean;
+  hasShapeOption: boolean;
+  isSticker: boolean;
+  pricePerCm2: number;
+  laminationPrice: number;
+  minOrderPrice: number;
+  minSizeCm: number;
+  maxSizeCm: number;
   colors: Color[];
   priceTiers: PriceTier[];
   sizes: Size[];
+  stickerDiscounts: StickerDiscount[];
 };
+
+const SHAPES = [
+  { value: "quadrato", label: "Quadrato", icon: "⬛" },
+  { value: "rotondo", label: "Rotondo", icon: "⚫" },
+  { value: "sagomato", label: "Sagomato (a contorno)", icon: "✂️" },
+];
+
+const STICKER_QUANTITIES = [1, 10, 25, 50, 100, 200, 300, 500];
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -30,6 +47,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [added, setAdded] = useState(false);
   const [selectedColor, setSelectedColor] = useState<Color | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedShape, setSelectedShape] = useState<string>("quadrato");
   const [quantity, setQuantity] = useState(1);
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [customizationFront, setCustomizationFront] = useState<string>("");
@@ -39,6 +57,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [wantsBack, setWantsBack] = useState(false);
   const [customizationNotes, setCustomizationNotes] = useState<string>("");
 
+  // Stato calcolatore adesivi
+  const [widthCm, setWidthCm] = useState<number>(10);
+  const [heightCm, setHeightCm] = useState<number>(10);
+  const [wantsLamination, setWantsLamination] = useState(false);
+
   useEffect(() => {
     fetch(`/api/products/${id}`)
       .then((res) => res.json())
@@ -46,6 +69,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         setProduct(data);
         if (data.colors?.length > 0) setSelectedColor(data.colors[0]);
         if (data.sizes?.length > 0) setSelectedSize(data.sizes[0].name);
+        if (data.isSticker) {
+          setWidthCm(data.minSizeCm || 10);
+          setHeightCm(data.minSizeCm || 10);
+          setQuantity(STICKER_QUANTITIES[0]);
+        }
       });
   }, [id]);
 
@@ -66,10 +94,46 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return price;
   };
 
-  const unitPrice = getPrice(quantity) + (wantsBack && customizationBack ? product.backPrice : 0);
-  const totalPrice = unitPrice * quantity;
+  // Trova lo sconto applicabile alla quantità corrente
+  const getApplicableDiscount = () => {
+    if (!product.stickerDiscounts || product.stickerDiscounts.length === 0) return null;
+    const sorted = [...product.stickerDiscounts].sort((a, b) => b.minQty - a.minQty);
+    return sorted.find((d) => quantity >= d.minQty) || null;
+  };
+
+  // Calcolo prezzo adesivo (cm²)
+  const getStickerUnitPrice = () => {
+    const area = widthCm * heightCm;
+    const basePrice = area * product.pricePerCm2;
+    const laminationCost = wantsLamination ? area * product.laminationPrice : 0;
+    let raw = basePrice + laminationCost;
+
+    const applicable = getApplicableDiscount();
+    if (applicable) {
+      raw = raw * (1 - applicable.discount / 100);
+    }
+
+    return raw;
+  };
+
+  const unitPrice = product.isSticker
+    ? getStickerUnitPrice()
+    : getPrice(quantity) + (wantsBack && customizationBack ? product.backPrice : 0);
+
+  const rawTotal = unitPrice * quantity;
+  const totalPrice = product.isSticker
+    ? Math.max(rawTotal, product.minOrderPrice)
+    : rawTotal;
+
+  const applicableDiscount = product.isSticker ? getApplicableDiscount() : null;
 
   const handleAddToCart = () => {
+    const shapeNote = product.hasShapeOption
+      ? `Forma: ${SHAPES.find((s) => s.value === selectedShape)?.label}. `
+      : "";
+    const sizeNote = product.isSticker
+      ? `Dimensioni: ${widthCm}x${heightCm}cm. ${wantsLamination ? "Con plastificazione. " : ""}`
+      : "";
     addToCart({
       ...product,
       price: unitPrice,
@@ -77,7 +141,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       customizationBack,
       originalFront,
       originalBack,
-      customizationNotes,
+      customizationNotes: shapeNote + sizeNote + customizationNotes,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -104,6 +168,101 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <h1 className="text-3xl font-black mb-3">{product.name}</h1>
             <p className="text-gray-500 mb-6">{product.description}</p>
 
+            {/* Forma (per adesivi) */}
+            {product.hasShapeOption && (
+              <div className="mb-6">
+                <p className="text-sm font-semibold mb-2">Forma</p>
+                <div className="flex gap-2 flex-wrap">
+                  {SHAPES.map((shape) => (
+                    <button
+                      key={shape.value}
+                      onClick={() => setSelectedShape(shape.value)}
+                      className="px-4 py-2 border rounded-full text-sm font-medium transition flex items-center gap-2"
+                      style={
+                        selectedShape === shape.value
+                          ? { background: "var(--accent)", borderColor: "var(--accent)" }
+                          : {}
+                      }
+                    >
+                      <span>{shape.icon}</span>
+                      {shape.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedShape === "sagomato" && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    Il taglio seguirà esattamente il contorno della tua grafica.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Calcolatore dimensioni adesivo (cm²) */}
+            {product.isSticker && (
+              <div className="mb-6 p-4 border rounded-xl bg-yellow-50">
+                <p className="text-sm font-semibold mb-3">📐 Dimensioni personalizzate</p>
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">
+                      Larghezza (cm) — min {product.minSizeCm}, max {product.maxSizeCm}
+                    </label>
+                    <input
+                      type="number"
+                      min={product.minSizeCm}
+                      max={product.maxSizeCm}
+                      value={widthCm}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || product.minSizeCm;
+                        const clamped = Math.min(Math.max(val, product.minSizeCm), product.maxSizeCm);
+                        setWidthCm(clamped);
+                      }}
+                      className="border rounded-lg px-3 py-2 w-full bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">
+                      Altezza (cm) — min {product.minSizeCm}, max {product.maxSizeCm}
+                    </label>
+                    <input
+                      type="number"
+                      min={product.minSizeCm}
+                      max={product.maxSizeCm}
+                      value={heightCm}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || product.minSizeCm;
+                        const clamped = Math.min(Math.max(val, product.minSizeCm), product.maxSizeCm);
+                        setHeightCm(clamped);
+                      }}
+                      className="border rounded-lg px-3 py-2 w-full bg-white"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-500 mb-3">
+                  Area: {(widthCm * heightCm).toFixed(0)} cm²
+                </p>
+
+                {product.laminationPrice > 0 && (
+                  <div className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="wantsLamination"
+                      checked={wantsLamination}
+                      onChange={(e) => setWantsLamination(e.target.checked)}
+                      className="w-5 h-5 cursor-pointer"
+                      style={{ accentColor: "var(--accent)" }}
+                    />
+                    <label htmlFor="wantsLamination" className="cursor-pointer text-sm font-medium">
+                      Aggiungi plastificazione protettiva
+                      <span className="ml-2 text-xs font-semibold" style={{ color: "var(--accent)" }}>
+                        +€{(widthCm * heightCm * product.laminationPrice).toFixed(2)}
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Colori */}
             {product.colors.length > 0 && (
               <div className="mb-6">
@@ -128,8 +287,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             )}
 
-            {/* Taglie */}
-            {product.sizes.length > 0 && (
+            {/* Taglie — nascoste per adesivi visto che usano cm liberi */}
+            {!product.isSticker && product.sizes.length > 0 && (
               <div className="mb-6">
                 <p className="text-sm font-semibold mb-2">
                   Taglia: <span className="font-normal text-gray-500">{selectedSize || "Seleziona"}</span>
@@ -153,28 +312,65 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             )}
 
-            {/* Quantità */}
-            <div className="mb-6">
-              <p className="text-sm font-semibold mb-2">Quantità</p>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-9 h-9 border rounded-full text-lg font-bold hover:bg-gray-100 transition"
-                >
-                  −
-                </button>
-                <span className="text-lg font-bold w-8 text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-9 h-9 border rounded-full text-lg font-bold hover:bg-gray-100 transition"
-                >
-                  +
-                </button>
+            {/* Quantità — pulsanti fissi per adesivi, +/- per il resto */}
+            {product.isSticker ? (
+              <div className="mb-6">
+                <p className="text-sm font-semibold mb-2">Quantità</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {STICKER_QUANTITIES.map((q) => {
+                    const discountForQty = product.stickerDiscounts
+                      ?.filter((d) => q >= d.minQty)
+                      .sort((a, b) => b.minQty - a.minQty)[0];
+                    return (
+                      <button
+                        key={q}
+                        onClick={() => setQuantity(q)}
+                        className="px-2 py-2.5 border rounded-lg text-sm font-semibold transition flex flex-col items-center"
+                        style={
+                          quantity === q
+                            ? { background: "var(--accent)", borderColor: "var(--accent)" }
+                            : {}
+                        }
+                      >
+                        <span>{q} pz</span>
+                        {discountForQty && (
+                          <span className="text-[10px] font-normal opacity-75">
+                            -{discountForQty.discount}%
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {applicableDiscount && (
+                  <p className="text-xs mt-2 font-semibold" style={{ color: "var(--accent)" }}>
+                    ✓ Sconto del {applicableDiscount.discount}% applicato per {quantity}+ pezzi
+                  </p>
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="mb-6">
+                <p className="text-sm font-semibold mb-2">Quantità</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-9 h-9 border rounded-full text-lg font-bold hover:bg-gray-100 transition"
+                  >
+                    −
+                  </button>
+                  <span className="text-lg font-bold w-8 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-9 h-9 border rounded-full text-lg font-bold hover:bg-gray-100 transition"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
 
-            {/* Prezzi a scaglioni */}
-            {product.priceTiers.length > 0 && (
+            {/* Prezzi a scaglioni — solo per prodotti non-adesivo */}
+            {!product.isSticker && product.priceTiers.length > 0 && (
               <div className="mb-6 bg-[#f9f9f9] rounded-xl p-4">
                 <p className="text-sm font-semibold mb-2">Prezzi per quantità</p>
                 <div className="space-y-1">
@@ -213,9 +409,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <div className="mt-4 space-y-6">
                     {/* Fronte */}
                     <div className="border rounded-xl p-4 bg-gray-50">
-                      <h3 className="font-bold mb-3">Grafica fronte</h3>
+                      <h3 className="font-bold mb-3">Grafica</h3>
                       <ProductCustomizer
-                        label="Carica la grafica per il fronte"
+                        label="Carica la tua grafica"
                         onConfirm={(file) => {
                           setCustomizationFront(file);
                           setOriginalFront(file);
@@ -223,14 +419,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       />
                       {customizationFront && (
                         <div className="mt-2 flex items-center gap-2">
-                          <img src={customizationFront} alt="Fronte" className="h-16 object-contain rounded-lg border bg-white" />
-                          <p className="text-sm text-green-600 font-semibold">✓ Fronte confermato</p>
+                          <img src={customizationFront} alt="Grafica" className="h-16 object-contain rounded-lg border bg-white" />
+                          <p className="text-sm text-green-600 font-semibold">✓ Grafica confermata</p>
                         </div>
                       )}
                     </div>
 
-                    {/* Retro */}
-                    {product.backImage && (
+                    {/* Retro — nascosto per adesivi */}
+                    {!product.isSticker && product.backImage && (
                       <div className="border rounded-xl p-4 bg-gray-50">
                         <div className="flex items-center gap-3 mb-3">
                           <input
@@ -297,7 +493,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             )}
 
             {/* Prezzo totale */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-2">
               <div>
                 <p className="text-sm text-gray-400">Prezzo unitario</p>
                 <p className="text-2xl font-black">€{unitPrice.toFixed(2)}</p>
@@ -310,9 +506,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               )}
             </div>
 
+            {product.isSticker && product.minOrderPrice > 0 && rawTotal < product.minOrderPrice && (
+              <p className="text-xs text-gray-400 mb-4">
+                Prezzo minimo d&apos;ordine applicato: €{product.minOrderPrice.toFixed(2)}
+              </p>
+            )}
+
             <button
               onClick={handleAddToCart}
-              className="w-full py-4 rounded-full font-bold transition"
+              className="w-full py-4 rounded-full font-bold transition mt-4"
               style={{
                 background: added ? "#22c55e" : "var(--accent)",
                 color: added ? "white" : "black",

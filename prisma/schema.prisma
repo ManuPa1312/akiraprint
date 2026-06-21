@@ -8,19 +8,27 @@ datasource db {
 }
 
 model Product {
-  id           Int            @id @default(autoincrement())
-  name         String
-  price        Float
-  category     String
-  image        String         @default("")
-  backImage    String         @default("")
-  description  String         @default("")
-  customizable Boolean        @default(false)
-  backPrice    Float          @default(0)
-  createdAt    DateTime       @default(now())
-  colors       ProductColor[]
-  priceTiers   Pricetier[]
-  sizes        ProductSize[]
+  id              Int            @id @default(autoincrement())
+  name            String
+  price           Float
+  category        String
+  image           String         @default("")
+  backImage       String         @default("")
+  description     String         @default("")
+  customizable    Boolean        @default(false)
+  backPrice       Float          @default(0)
+  hasShapeOption  Boolean        @default(false)
+  isSticker       Boolean        @default(false)
+  pricePerCm2     Float          @default(0)
+  laminationPrice Float          @default(0)
+  minOrderPrice   Float          @default(0)
+  minSizeCm       Float          @default(3)
+  maxSizeCm       Float          @default(30)
+  createdAt       DateTime       @default(now())
+  colors          ProductColor[]
+  priceTiers      Pricetier[]
+  sizes           ProductSize[]
+  stickerDiscounts StickerDiscount[]
 }
 
 model Order {
@@ -38,6 +46,7 @@ model Order {
   shippingCost    Float       @default(0)
   trackingNumber  String      @default("")
   items           OrderItem[]
+  
 }
 
 model OrderItem {
@@ -91,4 +100,12 @@ model PendingOrder {
   id        Int      @id @default(autoincrement())
   data      String
   createdAt DateTime @default(now())
+}
+
+model StickerDiscount {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  minQty    Int
+  discount  Float
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
