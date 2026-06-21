@@ -28,6 +28,8 @@ const product = await prisma.product.create({
     minOrderPrice: body.minOrderPrice || 0,
     minSizeCm: body.minSizeCm || 3,
     maxSizeCm: body.maxSizeCm || 30,
+    hasTechniqueOption: body.hasTechniqueOption || false,
+    embroideryPrice: body.embroideryPrice || 0,
     colors: { create: body.colors || [] },
     priceTiers: { create: body.priceTiers || [] },
     sizes: { create: body.sizes?.map((s: string) => ({ name: s })) || [] },

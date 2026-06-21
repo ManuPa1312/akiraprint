@@ -16,7 +16,6 @@ export async function GET(
 }
 
 
-
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -47,6 +46,8 @@ export async function PUT(
       minOrderPrice: body.minOrderPrice || 0,
       minSizeCm: body.minSizeCm || 3,
       maxSizeCm: body.maxSizeCm || 30,
+      hasTechniqueOption: body.hasTechniqueOption || false,
+      embroideryPrice: body.embroideryPrice || 0,
       colors: {
         create: body.colors?.map((c: { name: string; hex: string }) => ({
           name: c.name,
@@ -75,6 +76,7 @@ export async function PUT(
 
   return NextResponse.json(product);
 }
+
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }

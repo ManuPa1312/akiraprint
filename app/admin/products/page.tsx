@@ -23,6 +23,8 @@ type Product = {
   minOrderPrice: number;
   minSizeCm: number;
   maxSizeCm: number;
+  hasTechniqueOption: boolean;
+  embroideryPrice: number;
   colors: Color[];
   priceTiers: PriceTier[];
   sizes: { id: number; name: string }[];
@@ -45,6 +47,8 @@ const emptyForm = {
   minOrderPrice: "",
   minSizeCm: "3",
   maxSizeCm: "30",
+  hasTechniqueOption: false,
+  embroideryPrice: "",
 };
 
 export default function AdminProducts() {
@@ -128,6 +132,8 @@ export default function AdminProducts() {
         priceTiers,
         sizes,
         stickerDiscounts,
+        hasTechniqueOption: form.hasTechniqueOption,
+        embroideryPrice: parseFloat(form.embroideryPrice) || 0,
       }),
     });
 
@@ -164,6 +170,8 @@ export default function AdminProducts() {
       minOrderPrice: product.minOrderPrice.toString(),
       minSizeCm: product.minSizeCm.toString(),
       maxSizeCm: product.maxSizeCm.toString(),
+      hasTechniqueOption: product.hasTechniqueOption,
+      embroideryPrice: product.embroideryPrice.toString(),
     });
     setPreview(product.image);
     setPreviewBack(product.backImage);
@@ -397,6 +405,40 @@ export default function AdminProducts() {
               </label>
             </div>
           )}
+
+
+          {/* Toggle ricamo */}
+{form.customizable && (
+  <div className="md:col-span-2 grid md:grid-cols-2 gap-4 p-4 border rounded-lg bg-gray-50">
+    <div className="flex items-center gap-3">
+      <input
+        type="checkbox"
+        id="hasTechniqueOption"
+        checked={form.hasTechniqueOption}
+        onChange={(e) => setForm({ ...form, hasTechniqueOption: e.target.checked })}
+        className="w-5 h-5 cursor-pointer"
+        style={{ accentColor: "var(--accent)" }}
+      />
+      <label htmlFor="hasTechniqueOption" className="cursor-pointer font-medium">
+        Permetti scelta tra stampa e ricamo
+      </label>
+    </div>
+    {form.hasTechniqueOption && (
+      <div>
+        <label className="block text-sm text-gray-500 mb-1">Sovrapprezzo ricamo (€)</label>
+        <input
+          type="number"
+          step="0.01"
+          placeholder="Es. 5.00 (0 se stesso prezzo della stampa)"
+          value={form.embroideryPrice}
+          onChange={(e) => setForm({ ...form, embroideryPrice: e.target.value })}
+          className="border rounded-lg px-4 py-2 w-full bg-white"
+        />
+      </div>
+    )}
+  </div>
+)}
+
 
           {/* Immagine retro e prezzo aggiuntivo */}
           {form.customizable && (

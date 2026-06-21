@@ -9,51 +9,79 @@ export default async function Home() {
 
   return (
     <main>
-      {/* Hero */}
+{/* Hero */}
       <section className="relative text-center py-20 md:py-32 px-4 sm:px-6 bg-[#f9f9f9] overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1" style={{ background: "var(--accent)" }}></div>
-        <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--accent)" }}>
-          Maglie · Cappellini · Gadget
-        </p>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6 leading-tight">
-          Il tuo stile,<br />
-          <span style={{ color: "var(--accent)" }}>personalizzato</span>
-        </h1>
-        <p className="text-base sm:text-lg text-gray-500 mb-10 max-w-xl mx-auto px-2">
-          Grafiche originali e prodotti su misura per privati e aziende. Dal singolo pezzo alle grandi quantità.
-        </p>
-        <div className="flex justify-center gap-4 flex-wrap mb-10">
-          <Link href="/shop" className="btn-primary">
-            Scopri il catalogo
-          </Link>
-          <Link href="/preventivo" className="btn-secondary">
-            Richiedi preventivo
-          </Link>
-        </div>
 
-        {/* Badge fiducia */}
-        <div className="flex justify-center gap-4 sm:gap-6 flex-wrap text-xs sm:text-sm text-gray-500 px-2">
-          <span className="flex items-center gap-2 whitespace-nowrap">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            Pagamento sicuro
-          </span>
-          <span className="flex items-center gap-2 whitespace-nowrap">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            Spedizione tracciata
-          </span>
-          <span className="flex items-center gap-2 whitespace-nowrap">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Spedizioni in Italia
-          </span>
+        {/* Forme decorative sfumate */}
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: "500px",
+            height: "500px",
+            background: "var(--accent)",
+            opacity: 0.15,
+            filter: "blur(80px)",
+            top: "-150px",
+            right: "-100px",
+          }}
+        ></div>
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: "350px",
+            height: "350px",
+            background: "var(--accent)",
+            opacity: 0.1,
+            filter: "blur(70px)",
+            bottom: "-100px",
+            left: "-80px",
+          }}
+        ></div>
+
+        <div className="relative">
+          <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--accent)" }}>
+            Maglie · Cappellini · Gadget
+          </p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6 leading-tight">
+            Il tuo stile,<br />
+            <span style={{ color: "var(--accent)" }}>personalizzato</span>
+          </h1>
+          <p className="text-base sm:text-lg text-gray-500 mb-10 max-w-xl mx-auto px-2">
+            Grafiche originali e prodotti su misura per privati e aziende. Dal singolo pezzo alle grandi quantità.
+          </p>
+          <div className="flex justify-center gap-4 flex-wrap mb-10">
+            <Link href="/shop" className="btn-primary">
+              Scopri il catalogo
+            </Link>
+            <Link href="/preventivo" className="btn-secondary">
+              Richiedi preventivo
+            </Link>
+          </div>
+
+          {/* Badge fiducia */}
+          <div className="flex justify-center gap-4 sm:gap-6 flex-wrap text-xs sm:text-sm text-gray-500 px-2">
+            <span className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Pagamento sicuro
+            </span>
+            <span className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Spedizione tracciata
+            </span>
+            <span className="flex items-center gap-2 whitespace-nowrap">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Spedizioni in Italia
+            </span>
+          </div>
         </div>
       </section>
-
       {/* Come funziona */}
       <section className="py-16 md:py-20 px-4 sm:px-6 bg-white">
         <h2 className="text-2xl sm:text-3xl font-black text-center mb-10 md:mb-14">Come funziona</h2>

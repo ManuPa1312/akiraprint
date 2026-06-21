@@ -26,6 +26,8 @@ type Product = {
   minOrderPrice: number;
   minSizeCm: number;
   maxSizeCm: number;
+  hasTechniqueOption: boolean;
+  embroideryPrice: number;
   colors: Color[];
   priceTiers: PriceTier[];
   sizes: Size[];
@@ -48,6 +50,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [selectedColor, setSelectedColor] = useState<Color | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedShape, setSelectedShape] = useState<string>("quadrato");
+  const [selectedTechnique, setSelectedTechnique] = useState<string>("stampa");
   const [quantity, setQuantity] = useState(1);
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [customizationFront, setCustomizationFront] = useState<string>("");
@@ -116,9 +119,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     return raw;
   };
 
-  const unitPrice = product.isSticker
-    ? getStickerUnitPrice()
-    : getPrice(quantity) + (wantsBack && customizationBack ? product.backPrice : 0);
+ const unitPrice = product.isSticker
+  ? getStickerUnitPrice()
+  : getPrice(quantity) + (wantsBack && customizationBack ? product.backPrice : 0) 
+  + (selectedTechnique === "ricamo" ? product.embroideryPrice : 0);
 
   const rawTotal = unitPrice * quantity;
   const totalPrice = product.isSticker
@@ -127,25 +131,28 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const applicableDiscount = product.isSticker ? getApplicableDiscount() : null;
 
-  const handleAddToCart = () => {
-    const shapeNote = product.hasShapeOption
-      ? `Forma: ${SHAPES.find((s) => s.value === selectedShape)?.label}. `
-      : "";
-    const sizeNote = product.isSticker
-      ? `Dimensioni: ${widthCm}x${heightCm}cm. ${wantsLamination ? "Con plastificazione. " : ""}`
-      : "";
-    addToCart({
-      ...product,
-      price: unitPrice,
-      customizationFront,
-      customizationBack,
-      originalFront,
-      originalBack,
-      customizationNotes: shapeNote + sizeNote + customizationNotes,
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
-  };
+const handleAddToCart = () => {
+  const shapeNote = product.hasShapeOption
+    ? `Forma: ${SHAPES.find((s) => s.value === selectedShape)?.label}. `
+    : "";
+  const sizeNote = product.isSticker
+    ? `Dimensioni: ${widthCm}x${heightCm}cm. ${wantsLamination ? "Con plastificazione. " : ""}`
+    : "";
+  const techniqueNote = product.hasTechniqueOption
+    ? `Tecnica: ${selectedTechnique === "ricamo" ? "Ricamo" : "Stampa"}. `
+    : "";
+  addToCart({
+    ...product,
+    price: unitPrice,
+    customizationFront,
+    customizationBack,
+    originalFront,
+    originalBack,
+    customizationNotes: shapeNote + sizeNote + techniqueNote + customizationNotes,
+  });
+  setAdded(true);
+  setTimeout(() => setAdded(false), 2000);
+};
 
   return (
     <main className="bg-[#f9f9f9] min-h-screen py-16 px-6">
@@ -196,6 +203,46 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 )}
               </div>
             )}
+
+            {/* Tecnica: stampa o ricamo */}
+{product.hasTechniqueOption && (
+  <div className="mb-6">
+    <p className="text-sm font-semibold mb-2">Tecnica di personalizzazione</p>
+    <div className="flex gap-2 flex-wrap">
+      <button
+        onClick={() => setSelectedTechnique("stampa")}
+        className="px-4 py-2 border rounded-full text-sm font-medium transition flex items-center gap-2"
+        style={
+          selectedTechnique === "stampa"
+            ? { background: "var(--accent)", borderColor: "var(--accent)" }
+            : {}
+        }
+      >
+        🖨️ Stampa
+      </button>
+      <button
+        onClick={() => setSelectedTechnique("ricamo")}
+        className="px-4 py-2 border rounded-full text-sm font-medium transition flex items-center gap-2"
+        style={
+          selectedTechnique === "ricamo"
+            ? { background: "var(--accent)", borderColor: "var(--accent)" }
+            : {}
+        }
+      >
+        🧵 Ricamo
+        {product.embroideryPrice > 0 && (
+          <span className="text-xs font-semibold">+€{product.embroideryPrice.toFixed(2)}</span>
+        )}
+      </button>
+    </div>
+    {selectedTechnique === "ricamo" && (
+      <p className="text-xs text-gray-400 mt-2">
+        Il ricamo offre un effetto più resistente e premium rispetto alla stampa.
+      </p>
+    )}
+  </div>
+)}
+
 
             {/* Calcolatore dimensioni adesivo (cm²) */}
             {product.isSticker && (
