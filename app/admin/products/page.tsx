@@ -221,7 +221,7 @@ export default function AdminProducts() {
             onChange={(e) => setForm({ ...form, price: e.target.value })}
             className="border rounded-lg px-4 py-2"
           />
-         <select
+       <select
   value={form.category}
   onChange={(e) => setForm({ ...form, category: e.target.value })}
   className="border rounded-lg px-4 py-2"
@@ -232,6 +232,7 @@ export default function AdminProducts() {
   <option value="adesivi">Adesivi</option>
   <option value="roll-up">Roll Up</option>
   <option value="banner">Banner</option>
+  <option value="pet-lover">Pet Lover 🐾</option>
 </select>
           <div>
             <label className="block text-sm text-gray-500 mb-1">Immagine fronte</label>

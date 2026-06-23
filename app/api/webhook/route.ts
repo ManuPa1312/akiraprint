@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
+import { Resend } from "resend";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -16,70 +18,125 @@ export async function POST(req: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-  const sessionData = event.data.object as Stripe.Checkout.Session;
-  try {
-    // Recupera la sessione completa con i dettagli espansi
-    const session = await stripe.checkout.sessions.retrieve(sessionData.id, {
-      expand: ["customer_details"],
-    });
+    const sessionData = event.data.object as Stripe.Checkout.Session;
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionData.id, {
+        expand: ["customer_details"],
+      });
 
-    const pendingOrderId = parseInt(session.metadata?.pendingOrderId || "0");
-    const pending = await prisma.pendingOrder.findUnique({
-      where: { id: pendingOrderId },
-    });
+      const pendingOrderId = parseInt(session.metadata?.pendingOrderId || "0");
+      const pending = await prisma.pendingOrder.findUnique({
+        where: { id: pendingOrderId },
+      });
 
-    if (!pending) throw new Error("Pending order non trovato");
+      if (!pending) throw new Error("Pending order non trovato");
 
-    const items = JSON.parse(pending.data);
+      const items = JSON.parse(pending.data);
+      const customerDetails = session.customer_details;
+      const shippingCost = session.shipping_cost?.amount_total || 0;
 
-    const customerDetails = session.customer_details;
-    const shippingCost = session.shipping_cost?.amount_total || 0;
+      // Cerca utente per email se loggato
+      let userId: number | null = null;
+      if (customerDetails?.email) {
+        const user = await prisma.user.findUnique({
+          where: { email: customerDetails.email },
+        });
+        if (user) userId = user.id;
+      }
 
-    await prisma.order.create({
-      data: {
-        total: (session.amount_total || 0) / 100,
-        status: "pagato",
-        customerName: customerDetails?.name || "",
-        customerEmail: customerDetails?.email || "",
-        customerPhone: customerDetails?.phone || "",
-        shippingAddress: customerDetails?.address
-          ? `${customerDetails.address.line1 || ""} ${customerDetails.address.line2 || ""}`.trim()
-          : "",
-        shippingCity: customerDetails?.address?.city || "",
-        shippingZip: customerDetails?.address?.postal_code || "",
-        shippingCountry: customerDetails?.address?.country || "IT",
-        shippingCost: shippingCost / 100,
-        items: {
-          create: items.map((item: {
-            id: number;
-            quantity: number;
-            price: number;
-            customizationFront?: string;
-            customizationBack?: string;
-            originalFront?: string;
-            originalBack?: string;
-            customizationNotes?: string;
-          }) => ({
-            productId: item.id,
-            quantity: item.quantity,
-            price: item.price,
-            customizationFront: item.customizationFront || "",
-            customizationBack: item.customizationBack || "",
-            originalFront: item.originalFront || "",
-            originalBack: item.originalBack || "",
-            customizationNotes: item.customizationNotes || "",
-          })),
+      const order = await prisma.order.create({
+        data: {
+          total: (session.amount_total || 0) / 100,
+          status: "pagato",
+          customerName: customerDetails?.name || "",
+          customerEmail: customerDetails?.email || "",
+          customerPhone: customerDetails?.phone || "",
+          shippingAddress: customerDetails?.address
+            ? `${customerDetails.address.line1 || ""} ${customerDetails.address.line2 || ""}`.trim()
+            : "",
+          shippingCity: customerDetails?.address?.city || "",
+          shippingZip: customerDetails?.address?.postal_code || "",
+          shippingCountry: customerDetails?.address?.country || "IT",
+          shippingCost: shippingCost / 100,
+          userId,
+          items: {
+            create: items.map((item: {
+              id: number;
+              quantity: number;
+              price: number;
+              customizationFront?: string;
+              customizationBack?: string;
+              originalFront?: string;
+              originalBack?: string;
+              customizationNotes?: string;
+            }) => ({
+              productId: item.id,
+              quantity: item.quantity,
+              price: item.price,
+              customizationFront: item.customizationFront || "",
+              customizationBack: item.customizationBack || "",
+              originalFront: item.originalFront || "",
+              originalBack: item.originalBack || "",
+              customizationNotes: item.customizationNotes || "",
+            })),
+          },
         },
-      },
-    });
+      });
 
-    await prisma.pendingOrder.delete({ where: { id: pendingOrderId } });
-    console.log("Ordine salvato con indirizzo spedizione!");
-  } catch (err) {
-    console.error("Errore:", err);
-    return NextResponse.json({ error: "Errore" }, { status: 500 });
+      // Email conferma ordine al cliente
+      if (customerDetails?.email) {
+        try {
+          await resend.emails.send({
+            from: "AkiraPrint <onboarding@resend.dev>",
+            to: customerDetails.email,
+            subject: `✅ Ordine #${order.id} confermato — AkiraPrint`,
+            html: `
+              <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
+                <h2 style="color: #FFD000;">Ordine confermato! 🎉</h2>
+                <p>Ciao ${customerDetails.name || ""},</p>
+                <p>Abbiamo ricevuto il tuo ordine <strong>#${order.id}</strong> e lo stiamo già prendendo in carico.</p>
+                
+                <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                  <p style="margin: 0 0 8px; font-weight: bold;">Riepilogo ordine:</p>
+                  ${items.map((item: { id: number; quantity: number; price: number }) => `
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee;">
+                      <span>Prodotto #${item.id} × ${item.quantity}</span>
+                      <span>€${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  `).join("")}
+                  <div style="display: flex; justify-content: space-between; padding: 8px 0; font-weight: bold;">
+                    <span>Totale</span>
+                    <span>€${order.total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <p>Indirizzo di consegna:</p>
+                <p style="color: #666;">
+                  ${order.shippingAddress}<br>
+                  ${order.shippingZip} ${order.shippingCity} (${order.shippingCountry})
+                </p>
+
+                <p style="margin-top: 16px;">Ti invieremo un'altra email non appena il tuo ordine sarà spedito con il numero di tracking.</p>
+                
+                <p style="margin-top: 24px; color: #999; font-size: 13px;">
+                  Grazie per aver scelto AkiraPrint! Per qualsiasi domanda rispondi a questa email.
+                </p>
+              </div>
+            `,
+          });
+          console.log("Email conferma inviata a", customerDetails.email);
+        } catch (err) {
+          console.error("Errore email conferma:", err);
+        }
+      }
+
+      await prisma.pendingOrder.delete({ where: { id: pendingOrderId } });
+      console.log("Ordine salvato!");
+    } catch (err) {
+      console.error("Errore:", err);
+      return NextResponse.json({ error: "Errore" }, { status: 500 });
+    }
   }
-}
 
   return NextResponse.json({ received: true });
 }

@@ -173,7 +173,7 @@ export default async function Home() {
         <div className="flex justify-center gap-6 mb-4 flex-wrap">
           <a href="#" className="hover:text-[#F4721E] transition">Instagram</a>
           <a href="#" className="hover:text-[#F4721E] transition">TikTok</a>
-          <a href="#" className="hover:text-[#F4721E] transition">Contatti</a>
+          <a href="/contatti" className="hover:text-[#FFD000] transition">Contatti</a>
         </div>
         <p>Akira Print © 2026 — Tutti i diritti riservati</p>
       </footer>
