@@ -15,7 +15,6 @@ export async function GET(
   return NextResponse.json(product);
 }
 
-
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -48,6 +47,7 @@ export async function PUT(
       maxSizeCm: body.maxSizeCm || 30,
       hasTechniqueOption: body.hasTechniqueOption || false,
       embroideryPrice: body.embroideryPrice || 0,
+      featured: body.featured || false,
       colors: {
         create: body.colors?.map((c: { name: string; hex: string }) => ({
           name: c.name,
@@ -72,8 +72,6 @@ export async function PUT(
       },
     },
     include: { colors: true, priceTiers: true, sizes: true, stickerDiscounts: true },
-    
-    featured: body.featured || false,
   });
 
   return NextResponse.json(product);

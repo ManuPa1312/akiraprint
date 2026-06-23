@@ -41,22 +41,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google") {
-        const existing = await prisma.user.findUnique({
-          where: { email: user.email! },
-        });
-        if (!existing) {
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name || "",
-              password: "",
-            },
-          });
-        }
-      }
-      return true;
+   async signIn({ user, account }) {
+  if (account?.provider === "google") {
+    const existing = await prisma.user.findUnique({
+      where: { email: user.email! },
+    });
+    if (!existing) {
+      await prisma.user.create({
+        data: {
+          email: user.email!,
+          name: user.name || "",
+          password: "",
+          role: "user",
+        },
+      });
+    }
+    // Passa il role al token
+    const dbUser = existing || await prisma.user.findUnique({
+      where: { email: user.email! },
+    });
+    if (dbUser) {
+      user.role = dbUser.role;
+    }
+  }
+  return true;
+
     },
     jwt({ token, user }) {
       if (user) {
