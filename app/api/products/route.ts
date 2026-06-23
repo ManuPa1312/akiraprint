@@ -38,6 +38,7 @@ const product = await prisma.product.create({
         minQty: d.minQty,
         discount: d.discount,
       })) || [],
+      featured: body.featured || false,
     },
   },
   include: { colors: true, priceTiers: true, sizes: true, stickerDiscounts: true },

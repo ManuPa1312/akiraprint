@@ -72,6 +72,8 @@ export async function PUT(
       },
     },
     include: { colors: true, priceTiers: true, sizes: true, stickerDiscounts: true },
+    
+    featured: body.featured || false,
   });
 
   return NextResponse.json(product);

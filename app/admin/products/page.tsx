@@ -29,6 +29,7 @@ type Product = {
   priceTiers: PriceTier[];
   sizes: { id: number; name: string }[];
   stickerDiscounts: StickerDiscount[];
+  featured: boolean;
 };
 
 const emptyForm = {
@@ -49,6 +50,7 @@ const emptyForm = {
   maxSizeCm: "30",
   hasTechniqueOption: false,
   embroideryPrice: "",
+  featured: false,
 };
 
 export default function AdminProducts() {
@@ -134,6 +136,7 @@ export default function AdminProducts() {
         stickerDiscounts,
         hasTechniqueOption: form.hasTechniqueOption,
         embroideryPrice: parseFloat(form.embroideryPrice) || 0,
+        featured: form.featured,
       }),
     });
 
@@ -172,6 +175,7 @@ export default function AdminProducts() {
       maxSizeCm: product.maxSizeCm.toString(),
       hasTechniqueOption: product.hasTechniqueOption,
       embroideryPrice: product.embroideryPrice.toString(),
+      featured: product.featured
     });
     setPreview(product.image);
     setPreviewBack(product.backImage);
@@ -271,6 +275,21 @@ export default function AdminProducts() {
               Prodotto personalizzabile — il cliente può caricare la sua grafica
             </label>
           </div>
+
+          {/* scelta piu amati */}
+          <div className="md:col-span-2 flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
+          <input
+            type="checkbox"
+            id="featured"
+            checked={form.featured}
+            onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+            className="w-5 h-5 cursor-pointer"
+            style={{ accentColor: "var(--accent)" }}
+          />
+          <label htmlFor="featured" className="font-medium cursor-pointer">
+             ⭐ Metti in evidenza nella home page
+          </label>
+        </div>
 
           {/* Toggle è un adesivo (preventivatore cm²) */}
           {form.customizable && (

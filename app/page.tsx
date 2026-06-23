@@ -3,9 +3,10 @@ import prisma from "@/lib/prisma";
 
 export default async function Home() {
   const products = await prisma.product.findMany({
-    take: 3,
-    orderBy: { createdAt: "desc" },
-  });
+  where: { featured: true },
+  orderBy: { createdAt: "desc" },
+  take: 6,
+});
 
   return (
     <main>
