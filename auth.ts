@@ -41,36 +41,44 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-   async signIn({ user, account }) {
-  if (account?.provider === "google") {
-    const existing = await prisma.user.findUnique({
-      where: { email: user.email! },
-    });
-    if (!existing) {
-      await prisma.user.create({
-        data: {
-          email: user.email!,
-          name: user.name || "",
-          password: "",
-          role: "user",
-        },
-      });
-    }
-    // Passa il role al token
-    const dbUser = existing || await prisma.user.findUnique({
-      where: { email: user.email! },
-    });
-    if (dbUser) {
-      user.role = dbUser.role;
-    }
-  }
-  return true;
-
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        const existing = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+        if (!existing) {
+          await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name || "",
+              password: "",
+              role: "user",
+            },
+          });
+        }
+        const dbUser = existing || await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+        if (dbUser) {
+          user.role = dbUser.role;
+        }
+      }
+      return true;
     },
-    jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.role = (user as { role?: string }).role;
         token.id = user.id;
+      }
+      // Per Google OAuth rileggi il role dal DB
+      if (account?.provider === "google" && token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.id = dbUser.id.toString();
+        }
       }
       return token;
     },
