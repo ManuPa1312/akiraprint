@@ -12,22 +12,34 @@ export default function ChiSiamoPage() {
           Artigiani della stampa,<br />non un magazzino anonimo
         </h1>
         <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-          Perche AkiraPrint? Abbiamo deciso di chiamare la nostra azienda come la nostra cucciola a 4 zampe che ci segue da tanti anni !
+          Perche AkiraPrint? Abbiamo deciso di chiamare la nostra azienda come la nostra cucciola a 4 zampe che ci segue da tanti anni!
         </p>
       </section>
 
-      {/* Storia */}
-      <section className="py-20 px-6 max-w-3xl mx-auto">
-        <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
-          <p>
-            Dopo anni di esperienza nel settore come dipendenti, abbiamo deciso di metterci in proprio e dare vita a un progetto tutto nostro: <strong>Akira Print</strong>.
-          </p>
-          <p>
-            Non siamo una grande azienda con magazzini automatizzati e centralini anonimi. Siamo due persone che hanno scelto di affidarsi alle proprie capacità, con la voglia di portare avanti un lavoro fatto bene, prodotto dopo prodotto.
-          </p>
-          <p>
-            Ogni maglia, cappellino o gadget che esce dal nostro laboratorio viene <strong>lavorato singolarmente</strong>, con la cura che solo un vero artigiano può dare. Non stampiamo in serie senza criterio: ogni ordine è seguito da inizio a fine, che sia un pezzo singolo o una grande quantità per un'azienda.
-          </p>
+      {/* Storia con illustrazione */}
+      <section className="py-20 px-6 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Illustrazione */}
+          <div className="flex justify-center">
+            <img
+              src="/hero-bg.png"
+              alt="Il team di AkiraPrint nel laboratorio"
+              className="w-full max-w-sm md:max-w-full rounded-2xl shadow-sm"
+            />
+          </div>
+
+          {/* Testo */}
+          <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
+            <p>
+              Dopo anni di esperienza nel settore come dipendenti, abbiamo deciso di metterci in proprio e dare vita a un progetto tutto nostro: <strong>Akira Print</strong>.
+            </p>
+            <p>
+              Non siamo una grande azienda con magazzini automatizzati e centralini anonimi. Siamo due persone che hanno scelto di affidarsi alle proprie capacità, con la voglia di portare avanti un lavoro fatto bene, prodotto dopo prodotto.
+            </p>
+            <p>
+              Ogni maglia, cappellino o gadget che esce dal nostro laboratorio viene <strong>lavorato singolarmente</strong>, con la cura che solo un vero artigiano può dare. Non stampiamo in serie senza criterio: ogni ordine è seguito da inizio a fine, che sia un pezzo singolo o una grande quantità per un'azienda.
+            </p>
+          </div>
         </div>
       </section>
 

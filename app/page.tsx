@@ -136,7 +136,47 @@ export default async function Home() {
             </div>
           ))}
         </div>
-      </section>
+      </section>{/* Chi siamo - anteprima */}
+<section className="py-16 md:py-20 px-4 sm:px-6 bg-white">
+  <div className="max-w-5xl mx-auto">
+    <div className="grid md:grid-cols-2 gap-12 items-center">
+      {/* Illustrazione */}
+      <div className="flex justify-center order-2 md:order-1">
+        <img
+          src="/hero-bg.png"
+          alt="Il team di AkiraPrint"
+          className="w-full max-w-xs md:max-w-sm rounded-2xl shadow-sm"
+        />
+      </div>
+
+      {/* Testo */}
+      <div className="order-1 md:order-2">
+        <p className="text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--accent)" }}>
+          Chi siamo
+        </p>
+        <h2 className="text-3xl sm:text-4xl font-black mb-6 leading-tight">
+          Non una fabbrica anonima.<br />
+          <span style={{ color: "var(--accent)" }}>Siamo noi.</span>
+        </h2>
+        <p className="text-gray-500 text-lg mb-4 leading-relaxed">
+          Un piccolo laboratorio artigianale dove ogni prodotto passa dalle nostre mani,
+           uno per uno.
+        </p>
+        <p className="text-gray-500 mb-8 leading-relaxed">
+          Dopo anni come dipendenti nel settore, abbiamo scelto di metterci in proprio 
+          e fare le cose a modo nostro: con cura, qualità e un contatto diretto con ogni cliente.
+        </p>
+        <Link
+          href="/chi-siamo"
+          className="inline-block font-bold px-6 py-3 rounded-full transition"
+          style={{ background: "var(--accent)", color: "black" }}
+        >
+          Scopri la nostra storia →
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Prodotti in evidenza */}
       {products.length > 0 && (
