@@ -12,7 +12,16 @@ export default async function Home() {
     <main>
 {/* Hero */}
       <section className="relative text-center py-20 md:py-32 px-4 sm:px-6 bg-[#f9f9f9] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1" style={{ background: "var(--accent)" }}></div>
+  <div
+  className="absolute inset-0 bg-cover bg-no-repeat"
+  style={{
+    backgroundImage: "url('/hero-bg.png')",
+    backgroundPosition: 10,
+    opacity: 0.08,
+  }}
+
+
+/>
 
         {/* Forme decorative sfumate */}
         <div
@@ -40,7 +49,7 @@ export default async function Home() {
           }}
         ></div>
 
-        <div className="relative">
+        <div className="relative z-10">
           <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--accent)" }}>
             Maglie · Cappellini · Gadget
           </p>
