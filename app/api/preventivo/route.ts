@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   try {
     await resend.emails.send({
       from: "AkiraPrint <onboarding@resend.dev>",
-      to: "akiraprint.ecommerce@gmail.com",
+      to: "info@akiraprint.it",
       subject: `Nuova richiesta preventivo da ${nome}`,
       html: `
         <h2>Nuova richiesta preventivo</h2>
