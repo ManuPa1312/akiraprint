@@ -144,6 +144,7 @@ const handleAddToCart = () => {
   addToCart({
     ...product,
     price: unitPrice,
+    quantity: quantity,
     customizationFront,
     customizationBack,
     originalFront,
