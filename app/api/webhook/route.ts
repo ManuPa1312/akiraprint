@@ -35,14 +35,7 @@ export async function POST(req: Request) {
       const customerDetails = session.customer_details;
       const shippingCost = session.shipping_cost?.amount_total || 0;
 
-      // Cerca utente per email se loggato
-      let userId: number | null = null;
-      if (customerDetails?.email) {
-        const user = await prisma.user.findUnique({
-          where: { email: customerDetails.email },
-        });
-        if (user) userId = user.id;
-      }
+   
 
       const order = await prisma.order.create({
         data: {
@@ -58,7 +51,7 @@ export async function POST(req: Request) {
           shippingZip: customerDetails?.address?.postal_code || "",
           shippingCountry: customerDetails?.address?.country || "IT",
           shippingCost: shippingCost / 100,
-          userId,
+         
           items: {
             create: items.map((item: {
               id: number;
