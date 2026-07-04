@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
-import { Resend } from "resend";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const resend = new Resend(process.env.RESEND_API_KEY);
+
+async function sendEmail(to: string, toName: string, subject: string, html: string) {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": process.env.BREVO_API_KEY!,
+    },
+    body: JSON.stringify({
+      sender: { email: "info@akiraprint.it", name: "AkiraPrint" },
+      to: [{ email: to, name: toName }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  return response;
+}
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -35,8 +50,6 @@ export async function POST(req: Request) {
       const customerDetails = session.customer_details;
       const shippingCost = session.shipping_cost?.amount_total || 0;
 
-   
-
       const order = await prisma.order.create({
         data: {
           total: (session.amount_total || 0) / 100,
@@ -51,7 +64,6 @@ export async function POST(req: Request) {
           shippingZip: customerDetails?.address?.postal_code || "",
           shippingCountry: customerDetails?.address?.country || "IT",
           shippingCost: shippingCost / 100,
-         
           items: {
             create: items.map((item: {
               id: number;
@@ -76,50 +88,42 @@ export async function POST(req: Request) {
         },
       });
 
-      // Email conferma ordine al cliente
+      // Email conferma ordine con Brevo
       if (customerDetails?.email) {
         try {
-          await resend.emails.send({
-            from: "AkiraPrint <onboarding@resend.dev>",
-            to: customerDetails.email,
-            subject: `✅ Ordine #${order.id} confermato — AkiraPrint`,
-            html: `
+          await sendEmail(
+            customerDetails.email,
+            customerDetails.name || "",
+            `✅ Ordine #${order.id} confermato — AkiraPrint`,
+            `
               <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
                 <h2 style="color: #FFD000;">Ordine confermato! 🎉</h2>
                 <p>Ciao ${customerDetails.name || ""},</p>
                 <p>Abbiamo ricevuto il tuo ordine <strong>#${order.id}</strong> e lo stiamo già prendendo in carico.</p>
-                
                 <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin: 16px 0;">
                   <p style="margin: 0 0 8px; font-weight: bold;">Riepilogo ordine:</p>
                   ${items.map((item: { id: number; quantity: number; price: number }) => `
-                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee;">
-                      <span>Prodotto #${item.id} × ${item.quantity}</span>
-                      <span>€${(item.price * item.quantity).toFixed(2)}</span>
+                    <div style="padding: 4px 0; border-bottom: 1px solid #eee;">
+                      <span>Prodotto #${item.id} × ${item.quantity} — €${(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   `).join("")}
-                  <div style="display: flex; justify-content: space-between; padding: 8px 0; font-weight: bold;">
-                    <span>Totale</span>
-                    <span>€${order.total.toFixed(2)}</span>
+                  <div style="padding: 8px 0; font-weight: bold;">
+                    Totale: €${order.total.toFixed(2)}
                   </div>
                 </div>
-
                 <p>Indirizzo di consegna:</p>
                 <p style="color: #666;">
                   ${order.shippingAddress}<br>
                   ${order.shippingZip} ${order.shippingCity} (${order.shippingCountry})
                 </p>
-
                 <p style="margin-top: 16px;">Ti invieremo un'altra email non appena il tuo ordine sarà spedito con il numero di tracking.</p>
-                
-                <p style="margin-top: 24px; color: #999; font-size: 13px;">
-                  Grazie per aver scelto AkiraPrint! Per qualsiasi domanda rispondi a questa email.
-                </p>
+                <p style="margin-top: 24px; color: #999; font-size: 13px;">Grazie per aver scelto AkiraPrint!</p>
               </div>
-            `,
-          });
-          console.log("Email conferma inviata a", customerDetails.email);
+            `
+          );
+          console.log("Email conferma inviata con Brevo a", customerDetails.email);
         } catch (err) {
-          console.error("Errore email conferma:", err);
+          console.error("Errore email Brevo:", err);
         }
       }
 

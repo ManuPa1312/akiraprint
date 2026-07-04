@@ -1,8 +1,22 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+async function sendEmail(to: string, toName: string, subject: string, html: string) {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": process.env.BREVO_API_KEY!,
+    },
+    body: JSON.stringify({
+      sender: { email: "info@akiraprint.it", name: "AkiraPrint" },
+      to: [{ email: to, name: toName }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  return response;
+}
 
 export async function PUT(
   req: Request,
@@ -22,11 +36,11 @@ export async function PUT(
 
   if (body.trackingNumber && order.customerEmail) {
     try {
-      const result = await resend.emails.send({
-        from: "AkiraPrint <onboarding@resend.dev>",
-        to: order.customerEmail,
-        subject: `Il tuo ordine #${order.id} è in viaggio! 📦`,
-        html: `
+      await sendEmail(
+        order.customerEmail,
+        order.customerName || "",
+        `Il tuo ordine #${order.id} è in viaggio! 📦`,
+        `
           <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
             <h2 style="color: #FFD000;">Il tuo ordine è stato spedito!</h2>
             <p>Ciao ${order.customerName},</p>
@@ -40,10 +54,11 @@ export async function PUT(
               ${order.shippingAddress}<br>
               ${order.shippingZip} ${order.shippingCity} (${order.shippingCountry})
             </p>
+            <p style="margin-top: 16px; color: #999; font-size: 13px;">Grazie per aver scelto AkiraPrint!</p>
           </div>
-        `,
-      });
-      console.log("Risultato invio email:", JSON.stringify(result));
+        `
+      );
+      console.log("Email tracking inviata con Brevo a", order.customerEmail);
     } catch (err) {
       console.error("Errore invio email tracking:", err);
     }
