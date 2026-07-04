@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // Email conferma ordine con Brevo
+      // Email conferma ordine al cliente
       if (customerDetails?.email) {
         try {
           await sendEmail(
@@ -125,6 +125,54 @@ export async function POST(req: Request) {
         } catch (err) {
           console.error("Errore email Brevo:", err);
         }
+      }
+
+      // Email notifica nuovo ordine ad AkiraPrint
+      try {
+        await sendEmail(
+          "info@akiraprint.it",
+          "AkiraPrint",
+          `🛍️ Nuovo ordine #${order.id} — €${order.total.toFixed(2)}`,
+          `
+            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
+              <h2 style="color: #FFD000;">Nuovo ordine ricevuto! 🎉</h2>
+              <p><strong>Ordine #${order.id}</strong> — €${order.total.toFixed(2)}</p>
+
+              <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0 0 8px; font-weight: bold;">Cliente:</p>
+                <p style="margin: 0;">${order.customerName}</p>
+                <p style="margin: 0;">${order.customerEmail}</p>
+                <p style="margin: 0;">${order.customerPhone}</p>
+              </div>
+
+              <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0 0 8px; font-weight: bold;">Indirizzo di spedizione:</p>
+                <p style="margin: 0;">${order.shippingAddress}</p>
+                <p style="margin: 0;">${order.shippingZip} ${order.shippingCity} (${order.shippingCountry})</p>
+              </div>
+
+              <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                <p style="margin: 0 0 8px; font-weight: bold;">Prodotti ordinati:</p>
+                ${items.map((item: { id: number; quantity: number; price: number; customizationNotes?: string }) => `
+                  <div style="padding: 4px 0; border-bottom: 1px solid #eee;">
+                    <span>Prodotto #${item.id} × ${item.quantity} — €${(item.price * item.quantity).toFixed(2)}</span>
+                    ${item.customizationNotes ? `<br><small style="color: #666;">Note: ${item.customizationNotes}</small>` : ""}
+                  </div>
+                `).join("")}
+                <div style="padding: 8px 0; font-weight: bold;">
+                  Totale: €${order.total.toFixed(2)}
+                </div>
+              </div>
+
+              <a href="https://www.akiraprint.it/admin/orders" style="background: #FFD000; color: black; padding: 12px 24px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 16px;">
+                Vai al pannello ordini →
+              </a>
+            </div>
+          `
+        );
+        console.log("Email notifica inviata ad AkiraPrint");
+      } catch (err) {
+        console.error("Errore email notifica:", err);
       }
 
       await prisma.pendingOrder.delete({ where: { id: pendingOrderId } });
