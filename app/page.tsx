@@ -215,18 +215,19 @@ export default async function Home() {
         </Link>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-10 px-4 sm:px-6 text-center text-gray-400 text-sm bg-white">
-        <p className="text-xl font-black mb-3 text-black">
-          AKIRA<span style={{ color: "var(--accent)" }}>PRINT</span>
-        </p>
-        <div className="flex justify-center gap-6 mb-4 flex-wrap">
-          <a href="#" className="hover:text-[#F4721E] transition">Instagram</a>
-          <a href="#" className="hover:text-[#F4721E] transition">TikTok</a>
-          <a href="/contatti" className="hover:text-[#FFD000] transition">Contatti</a>
-        </div>
-        <p>Akira Print © 2026 — Tutti i diritti riservati</p>
-      </footer>
+     {/* Footer */}
+<footer className="border-t py-10 px-4 sm:px-6 text-center text-gray-400 text-sm bg-white">
+  <p className="text-xl font-black mb-3 text-black">
+    AKIRA<span style={{ color: "var(--accent)" }}>PRINT</span>
+  </p>
+  <div className="flex justify-center gap-6 mb-4 flex-wrap">
+    <a href="#" className="hover:text-[#FFD000] transition">Instagram</a>
+    <a href="#" className="hover:text-[#FFD000] transition">TikTok</a>
+    <a href="/contatti" className="hover:text-[#FFD000] transition">Contatti</a>
+    <a href="https://www.iubenda.com/privacy-policy/99771473" target="_blank" rel="noopener noreferrer" className="hover:text-[#FFD000] transition">Privacy Policy</a>
+  </div>
+  <p>Akira Print © 2026 — Tutti i diritti riservati</p>
+</footer>
     </main>
   );
 }
